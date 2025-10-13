@@ -2,15 +2,20 @@
 
 namespace App\Filament\Resources\Services\Schemas;
 
+use App\Filament\Resources\Services\Pages\CallService;
+use App\Filament\Resources\Services\ServiceResource;
+use App\Models\User;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
-use Filament\Infolists\Components\IconEntry;
+use Filament\Actions\Action;
+use Filament\Facades\Filament;
+use Filament\Forms\Components\SpatieTagsInput;
+use Filament\Infolists\Components\SpatieTagsEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Fieldset;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Colors\Color;
-use Ysfkaya\FilamentPhoneInput\Infolists\PhoneEntry;
+use Kirschbaum\Commentions\Filament\Actions\CommentsAction;
 
 class ServiceInfolist
 {
@@ -118,8 +123,41 @@ class ServiceInfolist
                                     ->date()
                             ]),
                         Section::make('Quick Action')
+                            ->headerActions([
+                                    Action::make('call_this_customer')
+                                        ->icon(LucideIcon::Phone)
+                                        ->color('secondary')
+                                        ->tooltip('call this customer')
+                                        ->hiddenLabel()
+                                        ->button()
+                                        ->action(fn($record, $livewire) => $livewire->redirect(ServiceResource::getUrl('call', ['record' => $record->id]))),
+                                    Action::make('add_tags')
+                                        ->label('Tag')
+                                        ->tooltip('add tag this customer')
+                                        ->hiddenLabel()
+                                        ->color('secondary')
+                                        ->modal()
+                                        ->modalWidth('sm')
+                                        ->icon(LucideIcon::Tags)
+                                        ->button()
+                                        ->schema([
+                                            SpatieTagsInput::make('tags')
+                                                ->autofocus(false)
+                                                ->type('categories')
+                                        ]),
+                                CommentsAction::make()
+                                    ->disableSidebar()
+                                    ->hiddenLabel()
+                                    ->mentionables(User::all())
+                            ])
                             ->icon(LucideIcon::Zap)
                             ->iconColor('primary')
+                            ->description('Key details about the quick actions.')
+                            ->columns(3)
+                            ->schema([
+                                    SpatieTagsEntry::make('tags')
+                                        ->columnSpanFull(),
+                            ])
             ]);
     }
 }

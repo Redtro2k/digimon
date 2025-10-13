@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\NewLogin;
 use App\Filament\Pages\NewRegistration;
+use App\Filament\Widgets\CustomerTimerWidget;
 use App\NavigationGroup;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -39,6 +40,7 @@ class MisPanelProvider extends PanelProvider
             ->path('mis')
             ->colors([
                 'primary' => Color::Amber,
+                'secondary' => Color::Teal,
             ])
             ->navigationGroups([
                 'Dealer',
@@ -52,8 +54,9 @@ class MisPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-//                FilamentInfoWidget::class,
+                FilamentInfoWidget::class,
             ])
+            ->databaseNotifications()
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

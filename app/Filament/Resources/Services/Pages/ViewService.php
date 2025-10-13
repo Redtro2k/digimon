@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Services\Pages;
 
 use App\Filament\Resources\Services\ServiceResource;
+use App\Filament\Widgets\CustomerTimerWidget;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Services;
 
+use App\Filament\Resources\Services\Pages\CallService;
 use App\Filament\Resources\Services\Pages\CreateService;
 use App\Filament\Resources\Services\Pages\EditService;
 use App\Filament\Resources\Services\Pages\ListServices;
@@ -73,6 +74,7 @@ class ServiceResource extends Resource
             'create' => CreateService::route('/create'),
             'view' => ViewService::route('/{record}'),
             'edit' => EditService::route('/{record}/edit'),
+            'call' => CallService::route('/{record}/call'),
         ];
     }
 }

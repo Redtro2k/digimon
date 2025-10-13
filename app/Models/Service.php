@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-use App\NavigationGroup;
 use Illuminate\Database\Eloquent\Model;
-
 class Service extends Model
 {
     //
@@ -29,5 +27,10 @@ class Service extends Model
     public function assignedMras(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_mras_id');
+    }
+
+    public function reminders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reminder::class);
     }
 }
