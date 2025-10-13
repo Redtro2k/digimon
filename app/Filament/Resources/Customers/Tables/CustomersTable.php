@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Customers\Tables;
 
+use App\Classes\MobileNumber;
+use App\Enums\MobileNumberEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -19,8 +21,11 @@ class CustomersTable
                 TextColumn::make('customer_name')
                     ->searchable(),
                 TextColumn::make('provider')
+                    ->badge()
+                    ->color(fn($state) => $state->badgeColor())
                     ->searchable(),
                 TextColumn::make('mobile_number')
+                    ->formatStateUsing(fn($state) => MobileNumber::formatPHMobileNumber($state))
                     ->searchable(),
                 TextColumn::make('address')
                     ->searchable(),
