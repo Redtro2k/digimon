@@ -26,10 +26,6 @@ class UserResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = LucideIcon::Users;
 
     protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::MIS;
-
-    protected static ?string $navigationBadgeTooltip = 'The number of users';
-
-
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();

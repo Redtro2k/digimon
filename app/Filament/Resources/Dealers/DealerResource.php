@@ -26,11 +26,6 @@ class DealerResource extends Resource
     {
         return static::getModel()::count();
     }
-
-    protected static ?string $navigationBadgeTooltip = 'The number of dealers';
-
-
-
     protected static ?string $recordTitleAttribute = 'acronym';
 
     public static function form(Schema $schema): Schema
