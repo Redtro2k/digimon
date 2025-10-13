@@ -15,8 +15,7 @@ class VehiclesTable
     {
         return $table
             ->columns([
-                TextColumn::make('customer.id')
-                    ->numeric()
+                TextColumn::make('customer.customer_name')
                     ->sortable(),
                 TextColumn::make('cs_number')
                     ->searchable(),

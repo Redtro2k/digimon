@@ -25,7 +25,7 @@ class CustomersTable
                     ->color(fn($state) => $state->badgeColor())
                     ->searchable(),
                 TextColumn::make('mobile_number')
-                    ->formatStateUsing(fn($state) => MobileNumber::formatPHMobileNumber($state))
+                    ->formatStateUsing(fn($state) => MobileNumber::make($state)->formatted())
                     ->searchable(),
                 TextColumn::make('address')
                     ->searchable(),

@@ -18,12 +18,14 @@ class ServiceForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(3)
             ->components([
                 Select::make('vehicle_id')
-                    ->disabled()
+                    ->disabledOn('edit')
                     ->relationship('vehicle', 'model')
                     ->required(),
                 TextInput::make('recommended_pm_service'),
+                TextInput::make('last_service_availed'),
                 Radio::make('forecast_status')
                     ->inline()
                     ->options([
@@ -41,25 +43,6 @@ class ServiceForm
                 TextInput::make('company_mobile'),
                 Toggle::make('has_fpm')
                     ->required(),
-                Wizard::make([
-                    Step::make('Attempt 1')
-                        ->schema([
-                            TextInput::make('assigned_to')
-                                ->afterStateHydrated(function (TextInput $component, $state) {
-                                    if (blank($state)) {
-                                        $component->state(auth()->id());
-                                    }
-                                }),
-                            TextInput::make('attempt')
-                                ->afterStateHydrated(function (TextInput $component, $state) {
-                                    if (blank($state)) {
-                                        $component->state(1);
-                                    }
-                                }),
-                        ])
-                ])
-                ->columnSpanFull()
-                ->hiddenOn(EditService::class)
             ]);
     }
 }

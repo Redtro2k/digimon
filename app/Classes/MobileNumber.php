@@ -8,28 +8,45 @@ use App\Enums\MobileNumberEnum;
 
 class MobileNumber
 {
-    public static function identifyProvider(string $mobile_number): ?MobileNumberEnum
+    protected string $rawNumber;
+    protected string $normalized;
+
+    protected ?MobileNumberEnum $provider = null;
+
+    public function __construct(string $number)
     {
-        // Normalize the phone number
-        $normalized = Str::of($mobile_number)
-            ->trim()
-            ->replace(['+', '-', ' ', '(', ')'], '');
+        $this->rawNumber = $number;
+        $this->normalized = $this->normalize($number);
+        $this->provider = $this->detectProvider();
+    }
 
-        // Convert to 09xx format for easier matching
-        if ($normalized->startsWith('63')) {
-            $normalized = Str::of('0' . $normalized->substr(2));
-        } elseif ($normalized->startsWith('9') && $normalized->length() === 10) {
-            $normalized = Str::of('0' . $normalized);
+    /** Create instance */
+    public static function make(string $number): static
+    {
+        return new static($number);
+    }
+
+    /** Normalize number to local format (09xx...) */
+    protected function normalize(string $number): string
+    {
+        $digits = preg_replace('/\D/', '', $number);
+
+        if (Str::startsWith($digits, '63')) {
+            $digits = '0' . substr($digits, 2);
+        } elseif (Str::startsWith($digits, '9') && strlen($digits) === 10) {
+            $digits = '0' . $digits;
         }
-        // Convert to 09xx format for easier matching
-        if ($normalized->startsWith('63')) {
-            $normalized = '0' . $normalized->substr(2);
-        } elseif ($normalized->startsWith('9') && $normalized->length() === 10) {
-            $normalized = '0' . $normalized;
+
+        if (strlen($digits) !== 11) {
+            throw new InvalidArgumentException("Invalid PH mobile number: {$number}");
         }
 
-        $normalizedStr = $normalized->toString();
+        return $digits;
+    }
 
+    /** Detect provider (using your existing logic) */
+    protected function detectProvider(): ?MobileNumberEnum
+    {
         $providers = [
             MobileNumberEnum::SMART->value => ['0900', '0908', '0911', '0913', '0914', '0918', '0919', '0920', '0921', '0928', '0940', '0951', '0960', '0961', '0964', '0968', '0969', '0970', '0971', '0980', '0981'],
             MobileNumberEnum::TNT->value => ['0907', '0909', '0910', '0912', '0929', '0930', '0938', '0939', '0946', '0947', '0948', '0949', '0950', '0963', '0989'],
@@ -42,50 +59,41 @@ class MobileNumber
         ];
 
         foreach ($providers as $provider => $prefixes) {
-            // Sort prefixes by length (longest first) to prioritize 5-digit matches
             usort($prefixes, fn($a, $b) => strlen($b) - strlen($a));
 
             foreach ($prefixes as $prefix) {
-                if (Str::startsWith($normalizedStr, $prefix)) {
+                if (Str::startsWith($this->normalized, $prefix)) {
                     return MobileNumberEnum::from($provider);
                 }
             }
         }
 
-        return null; // Unknown provider
+        return null;
     }
-    public static function formatPHMobileNumber(string $number): array
+
+    /** Format: 0994 615 2760 */
+    public function formatted(): string
     {
-        // Remove non-digits
-        $digits = preg_replace('/\D/', '', $number);
+        return Str::of($this->normalized)
+            ->replaceMatches('/^(\d{4})(\d{3})(\d{4})$/', '$1 $2 $3')
+            ->toString();
+    }
 
-        // Handle country code
-        if (Str::startsWith($digits, '63')) {
-            $digits = '0' . substr($digits, 2);
-        }
-        elseif (Str::startsWith($digits, '0')) {
-            // already local format
-        } elseif (strlen($digits) === 10 && Str::startsWith($digits, '9')) {
-            // Missing leading 0, assume local
-            $digits = '0' . $digits;
-        } else {
-            return [
-                'local' => $number,
-                'international' => $number,
-            ];
-        }
+    /** +63 994 615 2760 */
+    public function international(): string
+    {
+        return '+63 ' . substr($this->normalized, 1, 3) . ' ' . substr($this->normalized, 4, 3) . ' ' . substr($this->normalized, 7, 4);
+    }
 
-        // Check length AFTER adding the leading 0
-        if (strlen($digits) !== 11) {
-            throw new InvalidArgumentException("Invalid Philippine mobile number.");
-        }
+    /** Return provider enum */
+    public function provider(): ?MobileNumberEnum
+    {
+        return $this->provider;
+    }
 
-        $local = substr($digits, 0, 4) . ' ' . substr($digits, 4, 3) . ' ' . substr($digits, 7, 4);
-        $international = '+63 ' . substr($digits, 1, 3) . ' ' . substr($digits, 4, 3) . ' ' . substr($digits, 7, 4);
-
-        return [
-            'local' => $local,
-            'international' => $international,
-        ];
+    /** Return plain 09946152760 */
+    public function raw(): string
+    {
+        return $this->normalized;
     }
 }

@@ -6,7 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 class Service extends Model
 {
     //
-    protected $guarded = [];
+    protected $casts = [
+        'has_fpm' => 'boolean',
+        'forecast_date' => 'datetime',
+    ];
+
+    public $fillable = [
+        'personal_provider_number',
+        'company_provider_number'
+    ];
     public function vehicle(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Vehicle::class);

@@ -2,20 +2,14 @@
 
 namespace App\Filament\Resources\Services\Schemas;
 
-use App\Filament\Resources\Services\Pages\CallService;
 use App\Filament\Resources\Services\ServiceResource;
-use App\Models\User;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
 use Filament\Actions\Action;
-use Filament\Facades\Filament;
-use Filament\Forms\Components\SpatieTagsInput;
-use Filament\Infolists\Components\SpatieTagsEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Colors\Color;
-use Kirschbaum\Commentions\Filament\Actions\CommentsAction;
 
 class ServiceInfolist
 {
@@ -36,9 +30,7 @@ class ServiceInfolist
                                     ->label('Full Name'),
                                 TextEntry::make('vehicle.customer.provider')
                                     ->label('Phone Number')
-                                    ->badge()
-                                    ->size('lg') // or 'xl', 'md', 'sm', 'xs'
-                                    ->suffix(fn ($record) => ' • ' . ($record->vehicle?->customer?->mobile_number ?? 'N/A')),
+                                    ->badge(),
                                 TextEntry::make('vehicle.customer.address')
                                     ->columnSpanFull()
                                     ->color('primary')
@@ -139,25 +131,12 @@ class ServiceInfolist
                                         ->modal()
                                         ->modalWidth('sm')
                                         ->icon(LucideIcon::Tags)
-                                        ->button()
-                                        ->schema([
-                                            SpatieTagsInput::make('tags')
-                                                ->autofocus(false)
-                                                ->type('categories')
-                                        ]),
-                                CommentsAction::make()
-                                    ->disableSidebar()
-                                    ->hiddenLabel()
-                                    ->mentionables(User::all())
+                                        ->button(),
                             ])
                             ->icon(LucideIcon::Zap)
                             ->iconColor('primary')
                             ->description('Key details about the quick actions.')
                             ->columns(3)
-                            ->schema([
-                                    SpatieTagsEntry::make('tags')
-                                        ->columnSpanFull(),
-                            ])
             ]);
     }
 }

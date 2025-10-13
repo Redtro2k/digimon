@@ -13,7 +13,7 @@ class CustomerObserver
     public function created(Customer $customer): void
     {
         //
-        $customer->provider = MobileNumber::identifyProvider($customer->mobile_number);
+        $customer->provider = MobileNumber::make($customer->mobile_number)->provider();
         $customer->save();
     }
 
