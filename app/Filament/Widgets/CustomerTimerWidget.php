@@ -10,6 +10,11 @@ class CustomerTimerWidget extends Widget
 
     public ?int $recordId = null;
 
+    public static function canView(): bool
+    {
+        return false;
+    }
+
     public function handleCallStarted()
     {
 //        $callLog = Callout::query()->create([

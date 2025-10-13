@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('source');
             $table->string('customer_name');
-            $table->string('provider');
+            $table->string('provider')->nullable();
             $table->string('mobile_number')->nullable();
             $table->string('address')->nullable();
             $table->timestamps();

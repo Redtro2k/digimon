@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('company_email_address')->nullable();
             $table->string('company_mobile')->nullable();
             $table->boolean('has_fpm')->default(false);
+            $table->text('remarks')->nullable();
             $table->timestamps();
         });
     }

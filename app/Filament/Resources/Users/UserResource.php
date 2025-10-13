@@ -45,7 +45,6 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
 
         ];
     }
@@ -57,9 +56,9 @@ class UserResource extends Resource
     public static function getGlobalSearchResultTitle(Model $record): string |Htmlable
     {
         return new HtmlString("
-        <p>$record->name</p>
-        <small class='text-gray-500'>$record->email</small>
-    ");
+            <p>$record->name</p>
+            <small class='text-gray-500'>$record->email</small>
+        ");
     }
 
     public static function getPages(): array

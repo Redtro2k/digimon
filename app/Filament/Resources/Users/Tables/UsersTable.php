@@ -16,8 +16,10 @@ class UsersTable
         return $table
             ->columns([
                 TextColumn::make('username')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
+                    ->formatStateUsing(fn ($state) => Str::headline($state))
                     ->searchable(),
                 TextColumn::make('email')
                     ->label('Email address')

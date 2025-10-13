@@ -7,6 +7,7 @@ use App\Filament\Pages\NewRegistration;
 use App\Filament\Widgets\CustomerTimerWidget;
 use App\NavigationGroup;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -31,7 +32,7 @@ class MisPanelProvider extends PanelProvider
         return $panel
             ->registration(NewRegistration::class)
             ->login(NewLogin::class)
-            ->brandName('MIS PANEL')
+            ->brandName('DIGIMON 2.0 - MIS')
             ->default()
             ->spa()
             ->unsavedChangesAlerts()
@@ -68,9 +69,10 @@ class MisPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->topbar(false)
             ->plugins([
                 FilamentShieldPlugin::make()
-
+                    ->navigationGroup(LucideIcon::Shield)
             ])
             ->authMiddleware([
                 Authenticate::class,
