@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
+
+#[ObservedBy(Service::class)]
 class Service extends Model
 {
     //
@@ -10,11 +13,7 @@ class Service extends Model
         'has_fpm' => 'boolean',
         'forecast_date' => 'datetime',
     ];
-
-    public $fillable = [
-        'personal_provider_number',
-        'company_provider_number'
-    ];
+    protected $guarded = [];
     public function vehicle(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Vehicle::class);

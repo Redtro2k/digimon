@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Classes\MobileNumber;
 use App\Models\Service;
 
 class ServiceObserver
@@ -11,7 +12,7 @@ class ServiceObserver
      */
     public function created(Service $service): void
     {
-        //
+
     }
 
     /**

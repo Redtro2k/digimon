@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Services\Schemas;
 
+use App\Classes\MobileNumber;
 use App\Filament\Resources\Services\ServiceResource;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Colors\Color;
@@ -16,7 +18,12 @@ class ServiceInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(5)
             ->components([
+                Grid::make()
+                    ->columnSpan(3)
+                    ->columns(1)
+                    ->schema([
                         Section::make('Customer Information')
                             ->icon(LucideIcon::User)
                             ->iconColor('primary')
@@ -51,14 +58,14 @@ class ServiceInfolist
                                     ->label('CS Number')
                                     ->default('N/A')
                                     ->color('primary'),
-                                        TextEntry::make('vehicle.plate')
-                                            ->label('Plate Number')
-                                            ->default('N/A')
-                                            ->color('primary'),
-                                        TextEntry::make('vehicle.last_service_availed')
-                                            ->label('Last Service Availed')
-                                            ->default('N/A')
-                                            ->color('primary')
+                                TextEntry::make('vehicle.plate')
+                                    ->label('Plate Number')
+                                    ->default('N/A')
+                                    ->color('primary'),
+                                TextEntry::make('vehicle.last_service_availed')
+                                    ->label('Last Service Availed')
+                                    ->default('N/A')
+                                    ->color('primary')
                             ]),
                         Section::make('Service Information')
                             ->description('Essential details regarding the service performed or availed.')
@@ -92,8 +99,15 @@ class ServiceInfolist
                                             ->color('primary'),
                                         TextEntry::make('personal_mobile')
                                             ->columnSpanFull()
-                                            ->label('Personal Mobile #')
+                                            ->label('Personal Mobile')
                                             ->default('N/A')
+                                            ->formatStateUsing(fn($state, $record) => MobileNumber::make($state)->formatted())
+                                            ->color('primary'),
+                                        TextEntry::make('personal_mobile')
+                                            ->columnSpanFull()
+                                            ->label('Provider')
+                                            ->default('N/A')
+                                            ->formatStateUsing(fn($state, $record) => MobileNumber::make($state)->provider())
                                             ->color('primary'),
                                     ]),
                                 Fieldset::make('Company')
@@ -105,7 +119,7 @@ class ServiceInfolist
                                             ->color('primary'),
                                         TextEntry::make('company_mobile')
                                             ->columnSpanFull()
-                                            ->label('Company Mobile #')
+                                            ->label('Company Mobile')
                                             ->default('N/A')
                                             ->color('primary'),
                                     ]),
@@ -114,29 +128,30 @@ class ServiceInfolist
                                     ->color('primary')
                                     ->date()
                             ]),
-                        Section::make('Quick Action')
-                            ->headerActions([
-                                    Action::make('call_this_customer')
-                                        ->icon(LucideIcon::Phone)
-                                        ->color('secondary')
-                                        ->tooltip('call this customer')
-                                        ->hiddenLabel()
-                                        ->button()
-                                        ->action(fn($record, $livewire) => $livewire->redirect(ServiceResource::getUrl('call', ['record' => $record->id]))),
-                                    Action::make('add_tags')
-                                        ->label('Tag')
-                                        ->tooltip('add tag this customer')
-                                        ->hiddenLabel()
-                                        ->color('secondary')
-                                        ->modal()
-                                        ->modalWidth('sm')
-                                        ->icon(LucideIcon::Tags)
-                                        ->button(),
-                            ])
-                            ->icon(LucideIcon::Zap)
-                            ->iconColor('primary')
-                            ->description('Key details about the quick actions.')
-                            ->columns(3)
+                    ]),
+                Section::make('Quick Action')
+                    ->columnSpan(2)
+                    ->headerActions([
+                            Action::make('call_this_customer')
+                                ->icon(LucideIcon::Phone)
+                                ->color('secondary')
+                                ->tooltip('call this customer')
+                                ->hiddenLabel()
+                                ->button()
+                                ->action(fn($record, $livewire) => $livewire->redirect(ServiceResource::getUrl('call', ['record' => $record->id]))),
+                            Action::make('add_tags')
+                                ->label('Tag')
+                                ->tooltip('add tag this customer')
+                                ->hiddenLabel()
+                                ->color('secondary')
+                                ->modal()
+                                ->modalWidth('sm')
+                                ->icon(LucideIcon::Tags)
+                                ->button(),
+                    ])
+                    ->icon(LucideIcon::Zap)
+                    ->iconColor('primary')
+                    ->description('Key details about the quick actions.')
             ]);
     }
 }
