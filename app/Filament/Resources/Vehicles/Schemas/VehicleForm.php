@@ -15,6 +15,7 @@ class VehicleForm
                 Select::make('customer_id')
                     ->relationship('customer', 'customer_name')
                     ->disabledOn('edit')
+                    ->visibleOn('view')
                     ->required(),
                 TextInput::make('cs_number')
                     ->required(),

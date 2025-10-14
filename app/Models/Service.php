@@ -14,6 +14,7 @@ class Service extends Model
         'forecast_date' => 'datetime',
     ];
     protected $guarded = [];
+    protected $appends = ['title'];
     public function vehicle(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
@@ -31,11 +32,14 @@ class Service extends Model
         );
     }
 
+    public function getTitleAttribute(): string
+    {
+        return $this->customer->customer_name;
+    }
     public function assignedMras(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_mras_id');
     }
-
     public function reminders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Reminder::class);

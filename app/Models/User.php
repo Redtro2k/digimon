@@ -12,11 +12,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+
     protected $fillable = [
         'username',
         'name',
@@ -50,5 +46,10 @@ class User extends Authenticatable
     public function dealer(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Dealer::class, 'users_dealers');
+    }
+
+    public function queued()
+    {
+        return $this->hasOne(Queued::class);
     }
 }

@@ -17,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 
 class ServiceResource extends Resource
@@ -25,14 +26,14 @@ class ServiceResource extends Resource
 
     protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::MRAS;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
+    protected static ?string $recordTitleAttribute = 'title';
     protected static ?string $navigationLabel = 'List Forecast Service';
     protected static ?string $modelLabel = 'Forecast Service';
     protected static ?string $pluralModelLabel = 'Forecast Services';
     public static function getGloballySearchableAttributes(): array
-    {
+   {
         return ['vehicle.plate', 'vehicle.cs_number','vehicle.customer.customer_name', 'vehicle.model'];
-    }
+   }
 
     public static function getGlobalSearchResultUrl(Model $record): string
     {
