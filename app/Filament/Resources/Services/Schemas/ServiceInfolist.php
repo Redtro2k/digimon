@@ -5,13 +5,10 @@ namespace App\Filament\Resources\Services\Schemas;
 use App\Classes\ServiceSection;
 use App\Livewire\Timer;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
-use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\FontWeight;
 
 class ServiceInfolist
 {

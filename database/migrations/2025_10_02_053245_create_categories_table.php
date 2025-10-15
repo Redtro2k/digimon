@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('sub')->nullable();
             $table->enum('status', ['successful', 'unsuccessful'])->default('successful');
+            $table->string('what_field');
             $table->timestamps();
         });
     }

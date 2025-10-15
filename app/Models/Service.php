@@ -44,4 +44,8 @@ class Service extends Model
     {
         return $this->hasMany(Reminder::class);
     }
+    public function latestReminder()
+    {
+        return $this->hasOne(Reminder::class)->ofMany('attempt', 'max');
+    } // get the latest reminder
 }

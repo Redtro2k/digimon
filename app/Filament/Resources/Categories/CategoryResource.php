@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Categories;
 
+use App\Enums\StatusEnum;
 use App\Filament\Resources\Categories\Pages\ManageCategories;
 use App\Models\Category;
 use App\NavigationGroup;
@@ -35,6 +36,9 @@ class CategoryResource extends Resource
                 TextInput::make('name')
                     ->columnSpan(1)
                     ->required(),
+                TextInput::make('what_field')
+                    ->columnSpan(1)
+                    ->required(),
                 TextInput::make('sub')
                     ->columnSpan(1),
                 Radio::make('status')
@@ -52,7 +56,12 @@ class CategoryResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('status'),
+                TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => $state->getLabel())
+                    ->color(fn($state) => $state?->getColor())
+                    ->icon(fn($state) => $state?->getIcon()),
+                TextColumn::make('what_field'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -41,7 +41,7 @@ class MisPanelProvider extends PanelProvider
             ->path('mis')
             ->colors([
                 'primary' => Color::Amber,
-                'secondary' => Color::Teal,
+                'secondary' => Color::Cyan,
             ])
             ->navigationGroups([
                 'Dealer',
@@ -69,6 +69,7 @@ class MisPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->font('Manrope')
             ->topbar(false)
             ->plugins([
                 FilamentShieldPlugin::make()

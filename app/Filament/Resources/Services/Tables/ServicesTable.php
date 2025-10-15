@@ -15,6 +15,8 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\ColumnGroup;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
@@ -86,6 +88,25 @@ class ServicesTable
                     TextColumn::make('forecast_date')
                         ->label('Forecast Date')
                         ->date(),
+                ]),
+                ColumnGroup::make('Final Result Reminder', [
+                    TextColumn::make('latestReminder.sub_result')
+                        ->label('Status')
+                        ->badge()
+                        ->color(fn($state) => $state->getColor())
+                        ->formatStateUsing(fn($state) => $state->getLabel())
+                        ->icon(fn($state) => $state->getIcon())
+                        ->alignment(Alignment::Center)
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('latestReminder.category.name')
+                        ->label('Sub Result')
+                        ->placeholder('No  Call Back Date')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('latestReminder.call_back')
+                        ->label('Call Back Date')
+                        ->dateTime()
+                        ->placeholder('No  Call Back Date')
+                        ->toggleable(isToggledHiddenByDefault: true),
                 ]),
                 TextColumn::make('assignedMras.name')
                     ->placeholder('Not Assigned')
