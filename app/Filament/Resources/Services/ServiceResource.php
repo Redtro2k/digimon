@@ -34,15 +34,14 @@ class ServiceResource extends Resource
    {
         return ['vehicle.plate', 'vehicle.cs_number','vehicle.customer.customer_name', 'vehicle.model'];
    }
-
     public static function getGlobalSearchResultUrl(Model $record): string
     {
         return static::getUrl('view', ['record' => $record]);
     }
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        $model = $record->vehicle->model;
-        $customer = $record->vehicle->customer->customer_name;
+        $model = $record->load('vehicle')->vehicle->model;
+        $customer = $record->load('vehicle.customer')->vehicle->customer->customer_name;
         return "<div><h1>$model</h1></div><small>$customer</small>";
     }
 
@@ -67,7 +66,6 @@ class ServiceResource extends Resource
             //
         ];
     }
-
     public static function getPages(): array
     {
         return [

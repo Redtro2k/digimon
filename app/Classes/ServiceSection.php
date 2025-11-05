@@ -6,9 +6,13 @@ use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use App\Filament\Resources\Services\Schemas\ServiceForm;
 use App\Filament\Resources\Vehicles\Schemas\VehicleForm;
 use App\Models\Category;
+use App\Traits\QueueTimer;
+use Carbon\Carbon;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -26,6 +30,8 @@ use Filament\Support\Enums\FontWeight;
 
 class ServiceSection
 {
+    use QueueTimer;
+
     public static function customer(): Section
     {
         return Section::make('Customer Information')
@@ -202,7 +208,10 @@ class ServiceSection
 
         return Section::make('Call Attempts')
             ->icon(LucideIcon::Megaphone)
-            ->headerActions([self::createAttempt()])
+            ->headerActions([
+                self::createAttempt(),
+//                self::editAttempt(),
+            ])
             ->iconColor('primary')
             ->description('Customer result of call attempts. max of 3 times')
             ->schema([
@@ -234,17 +243,16 @@ class ServiceSection
                                 ->icon(fn($state) => $state->getIcon())
                                 ->color(fn($state) => $state->getColor())
                                 ->badge(),
+                            TextEntry::make('latestReminder.created_at')
+                                ->label('Called on')
+                                ->color('secondary')
+                                ->since(),
                             TextEntry::make('latestReminder.call_back')
-                                ->label('Call back Date')
+                                ->label('Call back & Schedule Date')
+                                ->columnSpan(2)
                                 ->color('secondary')
                                 ->dateTime('M d, Y h:i A')
                                 ->placeholder('N/A'),
-                            TextEntry::make('latestReminder.created_at')
-                                ->label('Date Called')
-                                ->color('secondary')
-                                ->size('xs')
-                                ->dateTime()
-                                ->since(),
                         ])
             ])
             ->footerActionsAlignment(Alignment::Center)
@@ -292,60 +300,140 @@ class ServiceSection
 
     public static function createAttempt(): Action
     {
+        $queued = auth()->user()->load('queued');
         return Action::make('New Attempt')
-            ->disabled(fn($record) => $record->latestReminder->attempt->value == 3 || $record->has_completed)
+            ->hidden(fn($record) =>
+            (!$queued->queued()->exists() && $queued->queued?->status !== 'processing')
+//                ($queued->queued()->exists() && $record->id !== $queued->queued?->service_id && $queued->queued->current_attempt === $record->current_attempt)
+//                $queued->queued?->status === 'processing' &&
+//                $record->latestReminder === null
+//                $queued->queued?->current_attempt !== $record->current_attempt
+            )
+            ->disabled($queued->queued?->has_reminded || !$queued->queued()->exists())
             ->size('sm')
-            ->icon(LucideIcon::PhoneCall)
-            ->modalIcon(LucideIcon::PhoneCall)
-            ->modalDescription('Indicates that the agent has made a new attempt to reach the customer.')
+            ->modal()
+            ->icon(LucideIcon::Edit3)
+            ->modalIcon(LucideIcon::Edit3)
+            ->modalDescription("An edit attempt was made to update this entry's information.")
             ->schema([
-                Grid::make()
-                    ->columns(3)
-                    ->schema([
-                        TextInput::make('attempt')
-                            ->default(fn($record) => $record->reminders()->max('attempt') + 1 ?? 1)
-                            ->disabled()
-                            ->hidden()
-                            ->dehydrated(),
-                        Select::make('sub_result')
-                            ->label('Call Result')
-                            ->native(false)
-                            ->required(fn (Get $get): bool => !empty($get('category_id')))
-                            ->options(fn() => Category::query()
-                                ->where('what_field', 'reminder_category')
-                                ->pluck('status', 'status')
-                                ->toArray())
-                            ->live(),
-                        Select::make('category_id')
-                            ->label('Sub Result')
-                            ->native(false)
-                            ->required(fn(Get $get): bool => !empty($get('sub_result')))
-                            ->options(fn(Get $get) => Category::query()
-                                ->where('what_field', 'reminder_category')
-                                ->where('status', $get('sub_result'))
-                                ->pluck('name', 'id')
-                                ->toArray()),
-                        DateTimePicker::make('call_back')
-                            ->label('Call Back Date')
-                            ->timezone(config('app.timezone'))
-                            ->native(false)
-                    ])
+                Select::make('sub_result')
+                    ->label('Call Result')
+                    ->native(false)
+                    ->required(fn (Get $get): bool => !empty($get('category_id')))
+                    ->options(fn() => Category::query()
+                        ->where('what_field', 'reminder_category')
+                        ->pluck('status', 'status')
+                        ->mapWithKeys(fn($status) => [$status->value => ucfirst($status->value)])
+                        ->toArray())
+                    ->live(),
+                Select::make('category_id')
+                    ->label('Sub Result')
+                    ->native(false)
+                    ->required(fn(Get $get): bool => !empty($get('sub_result')))
+                    ->options(fn(Get $get) => Category::query()
+                        ->where('what_field', 'reminder_category')
+                        ->where('status', $get('sub_result'))
+                        ->pluck('name', 'id')
+                        ->toArray()),
+                DateTimePicker::make('call_back')
+                    ->label('Call Back & Schedule Date')
+                    ->timezone(config('app.timezone'))
+                    ->minDate(Carbon::tomorrow())
+                    ->native(false)
             ])
-            ->action(function(array $data, $record) {
-                $attempt = ($record->latestReminder?->attempt?->value ?? 0) + 1;
+            ->action(function ($record, $data) {
+                $user = auth()->user();
+                $queued = $user->queued->started_at;
 
-                $record->reminders()->create([
+                // Determine next attempt number
+                $attempt = $record->latestReminder?->attempt?->value
+                    ? ((int) $record->latestReminder->attempt->value + 1)
+                    : 1;
+
+                // Proceed only if not yet reminded and attempt is within 3
+                if (! $user->queued->has_reminded && $attempt <= 3) {
+                    $record->reminders()->create([
+                        ...$data,
+                        'assigned_to' => $user->id,
+                        'attempt' => $attempt,
+                        'started_at' => $started = now()->setTimeFromTimeString($queued),
+                        'ended_at' =>  now(),
+                        'duration' => Carbon::parse($started)->diffInSeconds(now())
+                    ]);
+
+                    // Mark queue as reminded
+                    $user->queued()->update([
+                        'has_reminded' => true,
+                    ]);
+
+                    // If this was the 3rd attempt, mark record as completed
+                    if ($attempt === 3) {
+                        $record->update(['has_completed' => true]);
+                    }
+
+                    Notification::make()
+                        ->title('Call Finished Successfully')
+                        ->icon(LucideIcon::Check)
+                        ->body("You have successfully completed the call with {$record->customer_name}. A follow-up reminder has been scheduled.")
+                        ->success()
+                        ->send();
+                } else {
+                    Notification::make()
+                        ->title('Already Exceeded')
+                        ->icon(LucideIcon::X)
+                        ->body('Once counting starts, you can only add one reminder. End it first before adding another.')
+                        ->danger()
+                        ->send();
+                }
+            });
+    }
+
+    public static function editAttempt(): Action
+    {
+        return Action::make('Edit Attempt')
+            ->size('sm')
+            ->modal()
+            ->icon(LucideIcon::Edit3)
+            ->modalIcon(LucideIcon::Edit3)
+            ->modalDescription("An edit attempt was made to update this entry's information.")
+            ->fillForm(function($record){
+                return [
+                    'sub_result' => $record->latestReminder->sub_result->value,
+                    'category_id' => $record->latestReminder->category_id,
+                    'call_back' => $record->latestReminder->call_back,
+                ];
+            })
+            ->modalHeading(fn($record) => 'Edit '.$record->latestReminder->attempt->getLabel())
+            ->schema([
+                Select::make('sub_result')
+                    ->label('Call Result')
+                    ->native(false)
+                    ->required(fn (Get $get): bool => !empty($get('category_id')))
+                    ->options(fn() => Category::query()
+                        ->where('what_field', 'reminder_category')
+                        ->pluck('status', 'status')
+                        ->mapWithKeys(fn($status) => [$status->value => ucfirst($status->value)])
+                        ->toArray())
+                    ->live(),
+                Select::make('category_id')
+                    ->label('Sub Result')
+                    ->native(false)
+                    ->required(fn(Get $get): bool => !empty($get('sub_result')))
+                    ->options(fn(Get $get) => Category::query()
+                        ->where('what_field', 'reminder_category')
+                        ->where('status', $get('sub_result'))
+                        ->pluck('name', 'id')
+                        ->toArray()),
+                DateTimePicker::make('call_back')
+                    ->label('Call Back & Schedule Date')
+                    ->timezone(config('app.timezone'))
+                    ->minDate(Carbon::tomorrow())
+                    ->native(false)
+            ])
+            ->action(function(array $data, $record){
+                $record->latestReminder()->update([
                     ...$data,
-                    'assigned_to' => auth()->id(),
-                    'attempt' => $attempt,
                 ]);
-
-                Notification::make()
-                    ->title('Call finish Successfully')
-                    ->icon(LucideIcon::Check)
-                    ->body("You have finish completed the call with {$record->customer_name}. A follow-up reminder has been scheduled.")
-                    ->success()
-                    ->send();
             });
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Services\Tables;
 
+use App\Classes\ServiceAction;
 use App\Models\User;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
 use Filament\Actions\ActionGroup;
@@ -14,21 +15,27 @@ use Filament\Notifications\Notification;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\ColumnGroup;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 
 class ServicesTable
 {
+
     public static function configure(Table $table): Table
     {
         return $table
             ->emptyStateDescription('Once have a  Services, it will appear here.')
+            ->modifyQueryUsing(function($query){
+                $query->when(auth()->user()->hasRole('mras'), function($q){
+                    $q->where('assigned_mras_id', auth()->id());
+                });
+            })
             ->deferLoading()
             ->striped()
+            ->headerActions([
+                ServiceAction::make()
+            ])
             ->searchPlaceholder('Search (Plate, Model)')
             ->filtersFormColumns(3)
             ->persistFiltersInSession()

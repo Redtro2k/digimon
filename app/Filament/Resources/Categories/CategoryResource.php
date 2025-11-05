@@ -11,6 +11,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -19,6 +20,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
@@ -61,7 +64,8 @@ class CategoryResource extends Resource
                     ->formatStateUsing(fn ($state): string => $state->getLabel())
                     ->color(fn($state) => $state?->getColor())
                     ->icon(fn($state) => $state?->getIcon()),
-                TextColumn::make('what_field'),
+                TextColumn::make('what_field')
+                    ->formatStateUsing(fn ($state): string => Str::headline($state)),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -77,6 +81,10 @@ class CategoryResource extends Resource
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
+                ReplicateAction::make()
+                    ->schema([
+                        TextInput::make('name')
+                    ])
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

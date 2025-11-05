@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignIdFor(\App\Models\User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(\App\Models\Service::class)->constrained()->cascadeOnDelete();
             $table->enum('status', ['idle', 'processing'])->default('idle');
+            $table->boolean('has_reminded')->default(false);
             $table->time('started_at')->nullable();
             $table->time('ended_at')->nullable();
             $table->timestamps();

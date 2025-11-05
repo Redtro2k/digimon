@@ -13,4 +13,8 @@ class Vehicle extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+    public function services(): \Illuminate\Database\Eloquent\Relations\HasMany|Vehicle
+    {
+        return $this->hasMany(Service::class, 'vehicle_id', 'id');
+    }
 }

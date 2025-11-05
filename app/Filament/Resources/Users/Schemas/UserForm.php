@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
+use App\Enums\Gender;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -13,6 +15,13 @@ class UserForm
     {
         return $schema
             ->components([
+                FileUpload::make('profile')
+                    ->label('Profile image')
+                    ->disk('public')
+                    ->avatar()
+                    ->circleCropper()
+                    ->directory('user-images')
+                    ->columnSpanFull(),
                 TextInput::make('username')
                     ->required(),
                 TextInput::make('name')
@@ -21,6 +30,11 @@ class UserForm
                     ->label('Email address')
                     ->email()
                     ->required(),
+                Radio::make('gender')
+                    ->options(fn() => collect(Gender::cases())
+                        ->mapWithKeys(fn($case) => [$case->value => $case->getLabel()])
+                        ->all())
+                    ->inline(),
                 Select::make('roles')
                     ->relationship('roles', 'name')
                     ->multiple()
@@ -36,7 +50,7 @@ class UserForm
                 Select::make('dealer_id')
                     ->multiple()
                     ->preload()
-                    ->relationship('dealer', 'acronym')
+                    ->relationship('dealer', 'acronym'),
             ]);
     }
 }

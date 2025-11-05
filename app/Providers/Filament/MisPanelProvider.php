@@ -4,10 +4,16 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\NewLogin;
 use App\Filament\Pages\NewRegistration;
+use App\Filament\Provider\AvatarProvider\AvatarPlaceholderProvider;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Widgets\CustomerTimerWidget;
+use App\Http\Middleware\RolesRedirection;
+use App\Livewire\MRAScalledToday;
 use App\NavigationGroup;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -16,6 +22,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -23,22 +30,25 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class MisPanelProvider extends PanelProvider
 {
+    public string $name = 'Timer Widget';
+
     public function panel(Panel $panel): Panel
     {
         return $panel
             ->registration(NewRegistration::class)
             ->login(NewLogin::class)
-            ->brandName('DIGIMON 2.0 - MIS')
+            ->brandName('DIGIMON 2.0')
             ->default()
             ->spa()
             ->unsavedChangesAlerts()
             ->sidebarCollapsibleOnDesktop()
-            ->id('mis')
-            ->path('mis')
+            ->id('digimon')
+            ->path('digimon')
             ->colors([
                 'primary' => Color::Amber,
                 'secondary' => Color::Cyan,
@@ -73,11 +83,22 @@ class MisPanelProvider extends PanelProvider
             ->topbar(false)
             ->plugins([
                 FilamentShieldPlugin::make()
-                    ->navigationGroup(LucideIcon::Shield)
+                    ->navigationGroup(LucideIcon::Shield),
+                GlobalSearchModalPlugin::make()
+                    ->modal(width:Width::Large,hasCloseButton: false)
+                    ->highlightQueryStyles([
+                        'background-color' => 'yellow',
+                        'font-weight' => 'bold',
+                    ])
+                    ->localStorageMaxItemsAllowed(20)
+                    ->RetainRecentIfFavorite(true)
+                    ->associateItemsWithTheirGroups()
+                    ->showGroupSearchCounts()
             ])
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->viteTheme('resources/css/filament/mis/theme.css');
+            ->viteTheme('resources/css/filament/mis/theme.css')
+            ->defaultAvatarProvider(AvatarPlaceholderProvider::class);
     }
 }

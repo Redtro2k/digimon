@@ -15,4 +15,9 @@ class Customer extends Model
     protected $casts = [
       'provider' => MobileNumberEnum::class,
     ];
+
+    public function vehicles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Vehicle::class);
+    }
 }

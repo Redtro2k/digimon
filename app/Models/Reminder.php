@@ -26,4 +26,16 @@ class Reminder extends Model
     {
         return $this->load('category')->category->name;
     }
+    public function scopeFirstAttempt($query)
+    {
+        return $query->where('attempt', ReminderAttempt::FIRST);
+    }
+    public function scopeSecondAttempt($query)
+    {
+        return $query->where('attempt', ReminderAttempt::SECOND);
+    }
+    public function scopeThirdAttempt($query)
+    {
+        return $query->where('attempt', ReminderAttempt::THIRD);
+    }
 }
