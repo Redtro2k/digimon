@@ -227,7 +227,15 @@ return [
     */
 
     'custom_permissions' => [
-        'Upload Customer' => 'Import:UploadCustomer'
+        'Upload Customer' => 'Import:UploadCustomer',
+        'Generate Forecast',
+        'Reason for Unsuccessful Booking',
+        'Reason for Unsuccessful Call',
+        'Per Dealer',
+        'Per MRAS',
+        'Irregularity Chart',
+        'Mark as Arrived',
+        'Export Forecast Service'
     ],
 
     /*

@@ -174,9 +174,10 @@ class ServiceSection
                             ->columnSpanFull()
                             ->label('Personal Mobile')
                             ->default('N/A')
-                            ->formatStateUsing(fn($state, $record) => MobileNumber::make($state)->formatted())
+                            ->formatStateUsing(fn($state, $record) => MobileNumber::make($state)->formatted() ?? 'N/A')
                             ->color('secondary'),
                         TextEntry::make('personal_mobile')
+                            ->hidden(fn($state) => $state == 'N/A')
                             ->columnSpanFull()
                             ->label('Provider')
                             ->default('N/A')
@@ -352,6 +353,7 @@ class ServiceSection
 
                 // Proceed only if not yet reminded and attempt is within 3
                 if (! $user->queued->has_reminded && $attempt <= 3) {
+                    $record->update(['current_attempt' => $attempt]);
                     $record->reminders()->create([
                         ...$data,
                         'assigned_to' => $user->id,

@@ -29,8 +29,11 @@ class ServiceForm
                 Radio::make('forecast_status')
                     ->inline()
                     ->options([
-                        'open' => 'Open',
-                        'closed' => 'Closed',
+                        'Open' => 'Open',
+                        'Close (Already serviced within dealer)' => 'Close (Already serviced within dealer)',
+                        'Cancel (Serviced in other dealer)' => 'Cancel (Serviced in other dealer)',
+                        'Invalid Contact Number' => 'Invalid Contact Number',
+                        'No Contact Number' => 'No Contact Number'
                     ]),
                 DatePicker::make('forecast_date')
                     ->native(false)

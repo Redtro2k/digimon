@@ -38,7 +38,8 @@ class MobileNumber
         }
 
         if (strlen($digits) !== 11) {
-            throw new InvalidArgumentException("Invalid PH mobile number: {$number}");
+//            throw new InvalidArgumentException("Invalid PH mobile number: {$number}");
+            return $digits == null ? 'N/A' : "Invalid PH mobile number: {$number}";
         }
 
         return $digits;

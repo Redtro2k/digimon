@@ -2,12 +2,21 @@
 
 namespace App\Classes;
 
+use App\Filament\Exports\ServiceExporter;
 use App\Imports\ForecastListImport;
+use App\Models\User;
+use Carbon\Carbon;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
 use Filament\Actions\Action;
+use Filament\Actions\ExportAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Support\Colors\Color;
+use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Excel;
 
 class ServiceAction extends Resource
@@ -49,14 +58,101 @@ class ServiceAction extends Resource
            ])
            ->action(function($data){
                $filePath = storage_path('app/public/' . $data['file_upload']);
-               (new ForecastListImport)->queue($filePath);
+               (new ForecastListImport(auth()->user()))->queue($filePath);
 
-//               Notification::make()
-//                   ->title('Successfully Inserted')
-//                   ->body('CSV file successfully uploaded.')
-//                   ->success()
-//                   ->send();
+           });
+   }
 
+   public static function exports(): ExportAction
+   {
+       return ExportAction::make()
+           ->exporter(ServiceExporter::class)
+           ->hidden(fn() => auth()->user()->cannot('export_forecast_service'))
+           ->chunkSize(250)
+           ->schema([
+               Select::make('forecast_status')
+                   ->options([
+                       'Open' => 'Open',
+                       'Close (Already serviced within dealer)' => 'Close (Already serviced within dealer)',
+                       'Cancel (Serviced in other dealer)' => 'Cancel (Serviced in other dealer)',
+                       'Invalid Contact Number' => 'Invalid Contact Number',
+                       'No Contact Number' => 'No Contact Number',
+                       'all' => 'All'
+                   ])
+                   ->default('all')
+                   ->required(),
+               Select::make('has_fpm')
+                   ->options([
+                       'yes' => 'Yes',
+                       'no' => 'No',
+                       'all' => 'All',
+                   ])
+                   ->default('all')
+                   ->required(),
+               Select::make('assigned_mras_id')
+                   ->helperText('this field are not available for the MRAS user')
+                   ->label('Select MRAS')
+                   ->multiple()
+                   ->options(fn() => User::role('mras')->pluck('name', 'id'))
+                   ->hidden(auth()->user()->hasRole('mras'))
+                   ->required(!auth()->user()->hasRole('mras')),
+               Fieldset::make('Forecast / Date Range')
+                   ->schema([
+                       Select::make('preset')
+                           ->label('Quick Range (Forecast Date)')
+                           ->options([
+                               'today' => 'Today',
+                               'this_week' => 'This Week',
+                               'this_month' => 'This Month',
+                               'this_year' => 'This Year',
+                               'custom' => 'Custom Range',
+                           ])
+                           ->live()
+                           ->afterStateUpdated(function ($state, callable $set) {
+                               match ($state) {
+                                   'today' => [
+                                       $set('startDate', Carbon::today()),
+                                       $set('endDate', Carbon::today()),
+                                   ],
+                                   'this_week' => [
+                                       $set('startDate', Carbon::now()->startOfWeek()),
+                                       $set('endDate', Carbon::now()->endOfWeek()),
+                                   ],
+                                   'this_month' => [
+                                       $set('startDate', Carbon::now()->startOfMonth()),
+                                       $set('endDate', Carbon::now()->endOfMonth()),
+                                   ],
+                                   'this_year' => [
+                                       $set('startDate', Carbon::now()->startOfYear()),
+                                       $set('endDate', Carbon::now()->endOfYear()),
+                                   ],
+                                   default => [
+                                       $set('startDate', null),
+                                       $set('endDate', null),
+                                   ]
+                               };
+                           })
+                           ->columnSpanFull(),
+                       DatePicker::make('startDate')->native(false)->maxDate(fn ($get) => $get('endDate')),
+                       DatePicker::make('endDate')->native(false)->minDate(fn ($get) => $get('startDate')),
+                   ]),
+           ])
+           ->columnMapping(false)
+           ->modifyQueryUsing(function(Builder $query, array $options){
+
+               if($options['has_fpm'] !== 'all'){
+                   $query->where('has_fpm', $options['has_fpm']); // filter per FPM
+               }
+
+               if($options['forecast_status'] !== 'all'){
+                   $query->where('forecast_status', $options['forecast_status']); //filter per status
+               }
+
+               $query->whereIn('assigned_mras_id', $options['assigned_mras_id']); // filter mras
+
+               $query->whereBetween('forecast_date', [$options['startDate'], $options['endDate']]);
+
+               return $query;
            });
    }
 }

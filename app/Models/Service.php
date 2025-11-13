@@ -14,7 +14,28 @@ class Service extends Model
         'forecast_date' => 'datetime',
     ];
     protected $guarded = [];
-    protected $appends = ['title'];
+    protected $appends = ['title', 'first_reminder', 'second_reminder', 'third_reminder'];
+
+    public function getFirstReminderAttribute(){
+//       return $this->reminders[0]->load('category') ?? null;
+        if($this->reminders->count() == 1){
+            return $this->reminders[0]->load('category') ?? null;
+        }
+        return null;
+    }
+    public function getSecondReminderAttribute(){
+        if($this->reminders->count() == 2){
+            return $this->reminders[1]->load('category') ?? null;
+        }
+        return null;
+    }
+//
+    public function getThirdReminderAttribute(){
+        if($this->reminders->count() == 3){
+            return $this->reminders[2]->load('category') ?? null;
+        }
+        return null;
+    }
 
     public function vehicle(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
@@ -35,7 +56,7 @@ class Service extends Model
 
     public function getTitleAttribute(): string
     {
-        return $this->customer->customer_name;
+        return $this->load('customer')->customer->customer_name;
     }
 
     public function assignedMras(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -68,7 +89,6 @@ class Service extends Model
     {
         return $query->where('assigned_mras_id', $mrasId);
     }
-
     public function scopeWithoutReminders(Builder $query): Builder
     {
         return $query->whereDoesntHave('reminders');

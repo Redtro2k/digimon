@@ -8,19 +8,22 @@ use App\Filament\Provider\AvatarProvider\AvatarPlaceholderProvider;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Widgets\CustomerTimerWidget;
 use App\Http\Middleware\RolesRedirection;
+use App\Livewire\Feeds;
 use App\Livewire\MRAScalledToday;
 use App\NavigationGroup;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
+use Devonab\FilamentEasyFooter\EasyFooterPlugin;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
+use App\Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Schemas\Components\Livewire;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\Widgets\AccountWidget;
@@ -31,7 +34,10 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
+use Spatie\Activitylog\Models\Activity;
 
 class MisPanelProvider extends PanelProvider
 {
@@ -64,8 +70,9 @@ class MisPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+            ])
+            ->plugins([
+                FilamentApexChartsPlugin::make()
             ])
             ->databaseNotifications()
             ->middleware([
@@ -82,6 +89,9 @@ class MisPanelProvider extends PanelProvider
             ->font('Manrope')
             ->topbar(false)
             ->plugins([
+                EasyFooterPlugin::make()
+                    ->withBorder()
+                    ->hiddenFromPagesEnabled(),
                 FilamentShieldPlugin::make()
                     ->navigationGroup(LucideIcon::Shield),
                 GlobalSearchModalPlugin::make()

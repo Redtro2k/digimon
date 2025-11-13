@@ -4,19 +4,32 @@ namespace App\Imports;
 
 use App\Classes\MobileNumber;
 use App\Models\Customer;
+use App\Models\User;
 use Carbon\Carbon;
+use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Events\AfterImport;
+use Maatwebsite\Excel\Events\ImportFailed;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class ForecastListImport implements ToModel, WithHeadingRow, WithChunkReading, ShouldQueue
+class ForecastListImport implements ToModel, WithHeadingRow, WithChunkReading, ShouldQueue, WithEvents
 {
     use Importable;
+
+    protected $user;
+
+    public function __construct(User $user)
+    {
+        return $this->user = $user;
+    }
 
     public function model(array $row)
     {
@@ -28,6 +41,14 @@ class ForecastListImport implements ToModel, WithHeadingRow, WithChunkReading, S
         $row = collect($row)->toArray();
 
         if (empty($row['mobile_number'])) {
+
+            Notification::make()
+                ->title('Row Import Failed')
+                ->body("the row customer: {$row['customer_name']} doesnt have phone number")
+                ->danger()
+                ->sendToDatabase($this->user);
+
+            logger()->warning('Empty mobile number');
             return null;
         }
         try {
@@ -65,7 +86,7 @@ class ForecastListImport implements ToModel, WithHeadingRow, WithChunkReading, S
         }catch (\Exception $exception){
             Log::warning("Invalid date format in row: ",  [
                 'row' => $row,
-                ]);
+            ]);
             return null;
         }
     }
@@ -76,5 +97,25 @@ class ForecastListImport implements ToModel, WithHeadingRow, WithChunkReading, S
     public function headingRow(): int
     {
         return 2;
+    }
+    public function registerEvents(): array
+    {
+
+        return [
+            AfterImport::class => function () {
+                Notification::make()
+                    ->title('Forecast Import Complete')
+                    ->body('All forecast data has been imported successfully.')
+                    ->success()
+                    ->sendToDatabase($this->user);
+            },
+            ImportFailed::class => function ($event) {
+                Notification::make()
+                    ->title('Forecast Import Failed')
+                    ->body('There was an error importing the forecast file.')
+                    ->danger()
+                    ->sendToDatabase($this->user);
+            },
+        ];
     }
 }

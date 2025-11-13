@@ -3,20 +3,30 @@
 namespace App\Filament\Resources\Services\Tables;
 
 use App\Classes\ServiceAction;
+use App\Filament\Exports\ServiceExporter;
+use App\Jobs\AssigneCustomerJob;
 use App\Models\User;
+use Carbon\Carbon;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ExportAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\ColumnGroup;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class ServicesTable
@@ -34,7 +44,8 @@ class ServicesTable
             ->deferLoading()
             ->striped()
             ->headerActions([
-                ServiceAction::make()
+                ServiceAction::make(),
+                ServiceAction::exports()
             ])
             ->searchPlaceholder('Search (Plate, Model)')
             ->filtersFormColumns(3)
@@ -96,6 +107,34 @@ class ServicesTable
                         ->label('Forecast Date')
                         ->date(),
                 ]),
+                ColumnGroup::make('1st Attempt', [
+                    TextColumn::make('first_reminder.category.name')
+                        ->label('Category')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('first_reminder.sub_result')
+                        ->label('Sub Result')->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('first_reminder.call_back')
+                        ->datetime()
+                        ->label('Call Back')->toggleable(isToggledHiddenByDefault: true),
+                ]),
+                ColumnGroup::make('2nd Attempt', [
+                    TextColumn::make('second_reminder.category.name')
+                        ->label('Category')->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('second_reminder.sub_result')
+                        ->label('Sub Result')->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('second_reminder.call_back')
+                        ->datetime()
+                        ->label('Call Back')->toggleable(isToggledHiddenByDefault: true),
+                ]),
+                ColumnGroup::make('3rd Attempt', [
+                    TextColumn::make('third_reminder.category.name')->toggleable(isToggledHiddenByDefault: true)
+                        ->label('Category'),
+                    TextColumn::make('third_reminder.sub_result')->toggleable(isToggledHiddenByDefault: true)
+                        ->label('Sub Result'),
+                    TextColumn::make('third_reminder.call_back')->toggleable(isToggledHiddenByDefault: true)
+                        ->datetime()
+                        ->label('Call Back'),
+                ]),
                 ColumnGroup::make('Final Result Reminder', [
                     TextColumn::make('latestReminder.sub_result')
                         ->label('Status')
@@ -151,40 +190,9 @@ class ServicesTable
                         ->requiresConfirmation()
                         ->modalHeading('Assigned to MRAS')
                         ->modalDescription('Would you like to automatically assign these services to MRAS users now?')
-                        ->action(function(Collection $records, array $data){
-
-                            if($records->contains(fn($service) => $service->assigned_id !== null)){
-                                Notification::make()
-                                    ->title('Assigned Failed')
-                                    ->body('Some Selected service are already assigned to an MRAS user.')
-                                    ->danger()
-                                    ->send();
-                                return;
-                            }
-                            $mras = User::role('mras')->get();
-                            $shuffled = $records->shuffle();
-
-                            $chunks = $shuffled->split($mras->count());
-
-                            foreach($mras as $mra => $user){
-                                foreach($chunks[$mra] ?? [] as $service){
-                                    $service->update(['assigned_mras_id' => $user->id]);
-
-                                    Notification::make()
-                                        ->title('New Services')
-                                        ->body('You have a new Services assigned by the System')
-                                        ->info()
-                                        ->sendToDatabase($user, isEventDispatched: true)
-                                        ->broadcast($user);
-                                }
-                            }
-
-                            Notification::make()
-                                ->title('Assigned Successful')
-                                ->body('Selected services have been successfully assigned to MRAS users.')
-                                ->success()
-                                ->send();
-                        })
+                        ->action(function(Collection $records){
+                            AssigneCustomerJob::dispatch($records, auth()->user());
+                        }),
                 ]),
             ])
             ->extremePaginationLinks()

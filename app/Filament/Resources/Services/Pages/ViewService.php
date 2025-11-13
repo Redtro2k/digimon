@@ -40,7 +40,7 @@ class ViewService extends ViewRecord
 //                }),
             Action::make('has_customer_attend')
                 ->disabled(fn($record) => $record->has_completed)
-                ->hidden(fn($record) => !$record->reminders()->exists())
+                ->hidden(fn($record) => !$record->reminders()->exists() || !auth()->user()->hasRole('mras'))
                 ->requiresConfirmation()
                 ->icon(LucideIcon::Check)
                 ->label('Mark as Arrived')
@@ -102,7 +102,7 @@ class ViewService extends ViewRecord
                         }
                     } elseif ($data['customer_attend'] === 'other') {
                         $record->update(['has_completed' => true]);
-                        $record->latestReminder()->update($data['category_id']);
+                        $record->latestReminder()->update(['category_id' => $data['category_id']]);
                     }
                 })
         ];

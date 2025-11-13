@@ -13,12 +13,15 @@ use Filament\Tables\Columns\ColumnGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 
 
 class MRAScalledToday extends TableWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?string $heading = "Today's Customer Called";
 
     public $id;
@@ -38,6 +41,7 @@ class MRAScalledToday extends TableWidget
                     ->formatStateUsing(fn($state) => $state->getLabel()),
                     TextColumn::make('customer.customer_name')
                         ->label('Name')
+                        ->limit(50)
                         ->searchable()
                         ->toggleable(),
                     TextColumn::make('vehicle.plate')

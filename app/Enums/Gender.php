@@ -31,4 +31,12 @@ enum Gender: string
         };
     }
 
+    public function title(): string
+    {
+        return match ($this) {
+            self::MALE => 'Mr.',
+            self::FEMALE => 'Ms.',
+            self::OTHER => '',
+        };
+    }
 }
