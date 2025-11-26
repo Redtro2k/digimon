@@ -36,7 +36,10 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
+use lockscreen\FilamentLockscreen\Lockscreen;
+use Muazzam\SlickScrollbar\SlickScrollbarPlugin;
 use Spatie\Activitylog\Models\Activity;
 
 class MisPanelProvider extends PanelProvider
@@ -48,7 +51,8 @@ class MisPanelProvider extends PanelProvider
         return $panel
             ->registration(NewRegistration::class)
             ->login(NewLogin::class)
-            ->brandName('DIGIMON 2.0')
+            ->brandLogo(Storage::disk('public')->url('Logo/logo.png'))
+            ->brandLogoHeight('7rem')
             ->default()
             ->spa()
             ->unsavedChangesAlerts()
@@ -89,8 +93,21 @@ class MisPanelProvider extends PanelProvider
             ->font('Manrope')
             ->topbar(false)
             ->plugins([
+                BreezyCore::make(),
+                Lockscreen::make(),
+                SlickScrollbarPlugin::make(),
                 EasyFooterPlugin::make()
-                    ->withBorder()
+                    ->withBorder(true)
+                    ->withLogo(
+                        Storage::disk('public')->url('Logo/logo.png'),
+                        '/digimon/login',
+                        null,
+                        40)
+                    ->withLinks([
+                        ['title' => ' About', 'url' => 'https://example.com/about'],
+                        ['title' => 'CGV', 'url' => 'https://example.com/cgv'],
+                        ['title' => 'Privacy Policy', 'url' => 'https://example.com/privacy-policy']
+                    ])
                     ->hiddenFromPagesEnabled(),
                 FilamentShieldPlugin::make()
                     ->navigationGroup(LucideIcon::Shield),

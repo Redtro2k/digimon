@@ -10,6 +10,7 @@ use Filament\Facades\Filament;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UsersTable
@@ -17,10 +18,15 @@ class UsersTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function($query){
+                $query->when(!auth()->user()->hasRole('super_admin'), function($query){
+                    $query->roles->whereNotIn('name', ['super_admin']);
+                });
+            })
             ->columns([
                 ImageColumn::make('profile')
                     ->circular()
-                    ->getStateUsing(fn($record) => $record->profile ?? $record->gender->avatar() . str($record->name)
+                    ->getStateUsing(fn($record) => $record->profile ? Storage::disk('public')->url($record->profile) : $record->gender->avatar() . str($record->name)
                         ->headline()
                         ->replace(' ', '+')),
                 TextColumn::make('username')

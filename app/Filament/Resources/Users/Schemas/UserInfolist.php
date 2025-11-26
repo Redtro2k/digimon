@@ -20,6 +20,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\IconSize;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
 
 class UserInfolist
@@ -41,11 +42,12 @@ class UserInfolist
                             ->iconSize(IconSize::Large)
                             ->description('Essential user profile data and account settings')
                             ->schema([
-                                ImageEntry::make('profile')
+                                ImageEntry::make('user_avatar')
                                     ->hiddenLabel()
                                     ->alignCenter()
                                     ->columnSpanFull()
-                                    ->getStateUsing(fn($record) => $record->user_avatar),
+                                    ->circular()
+                                    ->getStateUsing(fn($record) => $record->profile ? Storage::disk('public')->url($record->profile) : $record->user_avatar),
                                 Grid::make()
                                     ->columnSpan(4)
                                     ->columns(3)
@@ -83,7 +85,7 @@ class UserInfolist
                             ->persistCollapsed()
                             ->columns(3)
                             ->schema(UserSection::statistics()),
-                        Section::make('Log Activity (Today)')
+                        Section::make('Log Activity')
                             ->description('View all user activities, changes, and system events for audit and compliance tracking.')
                             ->icon(LucideIcon::History)
                             ->iconColor('primary')
@@ -97,7 +99,6 @@ class UserInfolist
                                 return [
                                     Livewire::make(Feeds::class, [
                                         'activities' => $activities
-                                            ->limit(6)
                                             ->get()
                                             ->map(fn($activity) => [
                                                 'event' => $activity->event,

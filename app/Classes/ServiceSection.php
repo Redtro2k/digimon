@@ -114,10 +114,6 @@ class ServiceSection
                     ->label('Plate Number')
                     ->default('N/A')
                     ->color('secondary'),
-                TextEntry::make('vehicle.last_service_availed')
-                    ->label('Last Service Availed')
-                    ->default('N/A')
-                    ->color('secondary')
             ]);
     } // vehicle information
 

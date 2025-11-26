@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Services\Tables;
 use App\Classes\ServiceAction;
 use App\Filament\Exports\ServiceExporter;
 use App\Jobs\AssigneCustomerJob;
+use App\Models\Dealer;
 use App\Models\User;
 use Carbon\Carbon;
 use CodeWithDennis\FilamentLucideIcons\Enums\LucideIcon;
@@ -40,12 +41,22 @@ class ServicesTable
                 $query->when(auth()->user()->hasRole('mras'), function($q){
                     $q->where('assigned_mras_id', auth()->id());
                 });
+                $query->when(auth()->user()->hasRole('receptionist'), function($q){
+                    $user = auth()->user()->dealer()->pluck('dealer_id'); //current user
+                    $dealer = Dealer::with(['users' => fn($q) => $q->role('mras')])->whereIn('id', [$user])->get();
+
+                   $q->has('latestReminder')->whereIn('assigned_mras_id', $dealer->flatMap(fn($d) => $d->users->pluck('id')));
+                });
+                $query->when(!auth()->user()->hasAnyRole(['super_admin', 'manager']), function($q){
+                    $q->where('dealer_id', auth()->user()->dealer()->first()?->id);
+                });
             })
             ->deferLoading()
             ->striped()
             ->headerActions([
                 ServiceAction::make(),
-                ServiceAction::exports()
+                ServiceAction::exports(),
+                ServiceAction::resultSummary()
             ])
             ->searchPlaceholder('Search (Plate, Model)')
             ->filtersFormColumns(3)
@@ -181,10 +192,10 @@ class ServicesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->hidden(auth()->user()->can('Delete:Service')),
                     BulkAction::make('assignedServices')
                         ->label('Assigned to MRAS')
-                        ->visible(fn() => auth()->user()->hasRole('super_admin'))
+                        ->visible(fn() => auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('service_admin'))
                         ->icon(LucideIcon::UserPlus2)
                         ->color('primary')
                         ->requiresConfirmation()

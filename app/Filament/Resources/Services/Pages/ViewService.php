@@ -40,7 +40,7 @@ class ViewService extends ViewRecord
 //                }),
             Action::make('has_customer_attend')
                 ->disabled(fn($record) => $record->has_completed)
-                ->hidden(fn($record) => !$record->reminders()->exists() || !auth()->user()->hasRole('mras'))
+                ->hidden(fn($record) => !$record->reminders()->exists() && auth()->user()->can('mark_as_arrived'))
                 ->requiresConfirmation()
                 ->icon(LucideIcon::Check)
                 ->label('Mark as Arrived')

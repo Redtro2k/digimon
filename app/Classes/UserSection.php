@@ -37,9 +37,13 @@ class UserSection
                         }
 
                         $totalSeconds = self::getTotalCallSeconds($state);
-                        $averageMinutes = $totalSeconds / $hangupActivities->count() / 60;
+                        // $averageMinutes = $totalSeconds / $hangupActivities->count() / 60;
+                        // return number_format($averageMinutes, 2) . '%';
 
-                        return number_format($averageMinutes, 2) . '%';
+                        $averageMinutes = $totalSeconds / $hangupActivities->count();
+                        $interval = CarbonInterval::seconds($averageMinutes)->cascade();
+
+                        return $interval->forHumans();
                     })
                     ->weight(FontWeight::Bold)
                     ->color('primary')
@@ -61,6 +65,16 @@ class UserSection
                     ->color('primary')
                     ->icon(LucideIcon::User2)
                     ->iconColor('primary'),
+            TextEntry::make('id')
+                ->label('Overall Remaining Customer')
+                ->weight(FontWeight::Bold)
+                ->color('primary')
+                ->icon(LucideIcon::User2)
+                ->iconColor('primary')
+                ->columnSpan(2)
+                ->formatStateUsing(function($state){
+                    return User::find($state)->assignedService->count(). ' Customer';
+                }),
             ];
     }
 

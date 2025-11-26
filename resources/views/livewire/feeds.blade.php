@@ -41,10 +41,10 @@
                                             <div class="relative flex items-start space-x-2">
                                                 <div class="relative">
                                                     <img class="flex size-10 items-center justify-center rounded-full bg-gray-400 dark:bg-gray-600 ring-8 ring-white dark:ring-gray-900"
-                                                         src="{{ $activity['causer']->user_avatar }}" alt="">
+                                                         src="{{ $activity['causer']->profile ? Storage::disk('public')->url($activity['causer']->user_avatar) :$activity['causer']->user_avatar }}" alt="">
                                                     <span class="absolute -right-1 -bottom-0.5 rounded-tl bg-white dark:bg-gray-900 px-0.5 py-px">
-                                <x-filament::icon :icon="$icons[$event]" class="size-5 p-0.5 text-gray-500 dark:text-gray-400"/>
-                            </span>
+                                                        <x-filament::icon :icon="$icons[$event]" class="size-5 p-0.5 text-gray-500 dark:text-gray-400"/>
+                                                    </span>
                                                 </div>
 
                                                 <div class="min-w-0 flex-1">

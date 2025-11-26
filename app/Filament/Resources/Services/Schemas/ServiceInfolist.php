@@ -30,7 +30,7 @@ class ServiceInfolist
                     ->columns(1)
                     ->schema([
                         Section::make('Quick Action')
-                            ->hidden(fn() => auth()->user()->cannot('mark_as_arrived'))
+                            ->hidden(fn() => auth()->user()->can('mark_as_arrived'))
                             ->icon(LucideIcon::Zap)
                             ->iconColor('primary')
                             ->schema(fn($record) => [

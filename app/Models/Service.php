@@ -18,21 +18,21 @@ class Service extends Model
 
     public function getFirstReminderAttribute(){
 //       return $this->reminders[0]->load('category') ?? null;
-        if($this->reminders->count() == 1){
-            return $this->reminders[0]->load('category') ?? null;
+        if($this->load('reminders')->reminders->count() == 1){
+            return $this->load('reminders')->reminders[0]->load('category') ?? null;
         }
         return null;
     }
     public function getSecondReminderAttribute(){
-        if($this->reminders->count() == 2){
-            return $this->reminders[1]->load('category') ?? null;
+        if($this->load('reminders')->reminders->count() == 2){
+            return $this->load('reminders')->reminders[1]->load('category') ?? null;
         }
         return null;
     }
 //
     public function getThirdReminderAttribute(){
-        if($this->reminders->count() == 3){
-            return $this->reminders[2]->load('category') ?? null;
+        if($this->load('reminders')->reminders->count() == 3){
+            return $this->load('reminders')->reminders[2]->load('category') ?? null;
         }
         return null;
     }

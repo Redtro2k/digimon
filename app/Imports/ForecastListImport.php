@@ -72,15 +72,20 @@ class ForecastListImport implements ToModel, WithHeadingRow, WithChunkReading, S
             );
 
             return $vehicle->services()->create([
+                'dealer_id' => $this->user->dealer()->first()->id,
                 'last_service_availed' => $row['last_service_availed'] ?? null,
                 'recommended_pm_service' => $row['recommended_pm_service'] ?? null,
                 'forecast_status'        => $row['forecast_status'] ?? null,
-                'forecast_date'          => Carbon::instance(Date::excelToDateTimeObject($row['forecast_date']))->format('Y-m-d'),
+                'forecast_date'          => $row['forecast_date'] ? Carbon::instance(Date::excelToDateTimeObject($row['forecast_date']))->format('Y-m-d') : null,
                 'personal_email'         => $row['personal_email'] ?? null,
                 'personal_mobile'        => $row['personal_mobile'] ?? null,
                 'company_email_address'  => $row['company_email_address'] ?? null,
                 'company_mobile'         => $row['company_mobile'] ?? null,
-                'has_fpm'                => isset($row['has_fpm']) && strtoupper(trim($row['has_fpm'])) === 'FPM' ? 1 : 0,
+                'has_fpm' => match(true) {
+                    !isset($row['has_fpm']) || trim($row['has_fpm']) === '' => null,
+                    strtoupper(trim($row['has_fpm'])) === 'FPM' => 1,
+                    default => 0,
+                },
             ]);
 
         }catch (\Exception $exception){

@@ -8,6 +8,7 @@ use App\Livewire\MrasPerCustomerCalled;
 use App\Livewire\MRASStatsWidgets;
 use App\Livewire\PerDealer;
 use App\Livewire\PerMras;
+use App\Livewire\PerMrasCalledStatistics;
 use App\Livewire\UnsuccessfulBooked;
 use App\Livewire\UnsuccessfulCall;
 use App\Livewire\UserLogHistoryWidgets;
@@ -96,6 +97,7 @@ class Dashboard extends BaseDashboard
             PerDealer::class,
             PerMras::class,
             UserLogHistoryWidgets::class,
+            PerMrasCalledStatistics::class
         ];
     }
 

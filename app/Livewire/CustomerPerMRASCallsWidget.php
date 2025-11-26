@@ -21,17 +21,32 @@ class CustomerPerMRASCallsWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()->hasAnyRole('super_admin', 'manager');
+        return auth()->user()->hasAnyRole('super_admin', 'manager', 'service_admin');
     }
+
     protected function getTablePage(): string
     {
         return ListServices::class;
     }
+
     protected function getStats(): array
     {
+        // Get the current tab from URL
+        $currentTab = request()->query('tab');
+
+        // Check if any attempt filter is applied
+        $hasAttemptFilter = in_array($currentTab, ['first_attempt', 'second_attempt', 'third_attempt', 'final_result']);
+
         return User::role('mras')
+            ->when(auth()->user()->hasRole('service_admin'), function ($query) {
+                $userDealerId = auth()->user()->dealer()->first()?->id;
+                return $query->whereHas('dealer', function($query) use($userDealerId) {
+                    $query->where('dealers.id', $userDealerId);
+                });
+            })
             ->get()
-            ->map(function ($user) {
+            ->map(function ($user) use ($hasAttemptFilter) {
+
                 $called = Service::query()
                     ->where('assigned_mras_id', $user->id)
                     ->whereHas('reminders', function ($query) {
@@ -42,22 +57,24 @@ class CustomerPerMRASCallsWidget extends BaseWidget
                     })
                     ->count();
 
-//                $stats = $user->serviceReminder()
+                $assigned = $this->getPageTableQuery()
+                    ->whereHas('assignedMras', function($query) use($user){
+                        $query->where('assigned_mras_id', $user->id)
+                            ->whereNot('has_completed', true);
+                    })
+                    ->count();
+
+                $average = $assigned > 0 ? number_format(($called / $assigned) * 100, 2) : 0;
 
                 return Stat::make(
                     $user->name . ' (' . $user->load('dealer')->dealer->first()?->acronym . ')',
-                    $this->getPageTableQuery()
-                        ->whereHas('assignedMras', function($query) use($user){
-                            $query->where('assigned_mras_id', $user->id)
-                                ->whereNot('has_completed', true);
-                        })
-                        ->count())
+                    $assigned)
                     ->icon(LucideIcon::User)
                     ->descriptionColor($called > 0 ? 'success' : 'danger')
                     ->descriptionIcon(LucideIcon::TrendingUp, IconPosition::Before)
                     ->chart([])
                     ->chartColor('primary')
-                    ->description($called > 0 ? "has {$called} called for today" : null);
+                    ->description($called > 0 && !$hasAttemptFilter ? "has {$called} called for today, with an average of {$average}%" : null);
             })
             ->all();
     }

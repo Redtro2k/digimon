@@ -27,6 +27,7 @@ class MRASStatsWidgets extends StatsOverviewWidget
         $customer_call = Service::query()
             ->where('assigned_mras_id', auth()->id())
             ->where('has_completed', false)
+            ->whereDoesntHave('latestReminder')
             ->when($startDate, fn (Builder $query) => $query->whereDate('created_at', '>=', $startDate))
             ->when($endDate, fn (Builder $query) => $query->whereDate('created_at', '<=', $endDate))
             ->count();

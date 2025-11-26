@@ -7,6 +7,7 @@
 @source '../../app/Filament/**/*.php';  /* Add this */
 @source '../../resources/views/filament/**/*.blade.php';  /* Add this */
 @source '../../../../vendor/devonab/filament-easy-footer/resources/views/**/*';
+@source '../../../../vendor/jeffgreco13/filament-breezy/resources/**/*';
 
 
 @theme {

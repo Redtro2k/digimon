@@ -30,6 +30,7 @@ class AssigneCustomerJob implements ShouldQueue
     {
         $this->services->load('assignedMras');
 
+
         // Check if any service is already assigned
         if ($this->services->some(fn($service) => $service->assigned_mras_id !== null)) {
             if ($this->notifyUser) {
@@ -43,7 +44,14 @@ class AssigneCustomerJob implements ShouldQueue
         }
 
         $shuffled = $this->services->shuffle();
-        $mras = User::role('mras')->get();
+        $mras = User::role('mras')
+            ->when($this->notifyUser->hasRole('service_admin'), function ($query) {
+                $userDealerId = $this->notifyUser->dealer()->first()?->id;
+                return $query->whereHas('dealer', function($query) use($userDealerId) {
+                    $query->where('dealers.id', $userDealerId);
+                });
+            })
+            ->get();
 
         $chunks = $shuffled->split($mras->count());
         foreach($mras as $mra => $user)
@@ -52,7 +60,7 @@ class AssigneCustomerJob implements ShouldQueue
             $userServices->chunk(50)->each(function ($subChunk) use ($user) {
                 foreach ($subChunk as $service) {
                     try {
-                        $service->update(['assigned_mras_id' => $user->id]);
+                        $service->update(['assigned_mras_id' => $user->id, 'assigned_date' => now()]);
                     } catch (\Exception $e) {
                         Log::warning("Failed to assign service ID {$service->id} to user {$user->id}: {$e->getMessage()}");
                     }

@@ -17,7 +17,7 @@ class User extends Authenticatable implements HasAvatar
 {
     use HasFactory, Notifiable, HasRoles;
 
-    protected $casts = ['profile' => 'array', 'gender' => Gender::class];
+    protected $casts = ['profile' => 'string', 'gender' => Gender::class];
     protected $fillable = [
         'username',
         'name',
@@ -61,6 +61,10 @@ class User extends Authenticatable implements HasAvatar
 
     public function serviceReminders(){
         return $this->hasMany(Reminder::class, 'assigned_to');
+    }
+
+    public function assignedService(){
+        return $this->hasMany(Service::class, 'assigned_mras_id');
     }
 
     protected function userAvatar(): Attribute

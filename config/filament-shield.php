@@ -235,7 +235,9 @@ return [
         'Per MRAS',
         'Irregularity Chart',
         'Mark as Arrived',
-        'Export Forecast Service'
+        'Export Forecast Service',
+        'Call Result Summary',
+        'Per MRAS Called Statistics',
     ],
 
     /*
