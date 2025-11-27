@@ -4,10 +4,14 @@ namespace App\Livewire;
 
 use App\Models\User;
 use Filament\Support\RawJs;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
+use Illuminate\Database\Eloquent\Builder;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class PerMrasCalledStatistics extends ApexChartWidget
 {
+
+    use InteractsWithPageFilters;
     protected static ?string $chartId = 'perMrasCalledStatistics';
     protected int | string | array $columnSpan = 2;
 
@@ -23,6 +27,9 @@ class PerMrasCalledStatistics extends ApexChartWidget
     {
         $users = User::role('mras')->with(['serviceReminders', 'assignedService'])->get();
 
+        $startDate = $this->pageFilters['startDate'] ?? null;
+        $endDate = $this->pageFilters['endDate'] ?? null;
+
         $userNames = $users->pluck('name')->toArray();
 
         // Calculate data and percentages for each user
@@ -31,8 +38,14 @@ class PerMrasCalledStatistics extends ApexChartWidget
         $percentages = [];
 
         foreach ($users as $user) {
-            $called = $user->serviceReminders->count();
-            $assigned = $user->assignedService->count();
+            $called = $user->serviceReminders()
+                ->when($startDate, fn (Builder $query) => $query->whereDate('created_at', '>=', $startDate))
+                ->when($endDate, fn (Builder $query) => $query->whereDate('created_at', '<=', $endDate))
+                ->count();
+            $assigned = $user->assignedService()
+                ->when($startDate, fn (Builder $query) => $query->whereDate('assigned_date', '>=', $startDate))
+                ->when($endDate, fn (Builder $query) => $query->whereDate('assigned_date', '<=', $endDate))
+                ->count();
             $percentage = $assigned > 0 ? (($called / $assigned) * 100) : 0;
 
             $calledCustomerData[] = $called;

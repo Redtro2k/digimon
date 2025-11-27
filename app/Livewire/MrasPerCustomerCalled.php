@@ -37,7 +37,7 @@ class MrasPerCustomerCalled extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'DLR SAP (TMP GENERATED) ('.$tmp = $this->generatedForecast('1. DLR SAP (TMP GENERATED)', $startDate, $endDate).')',
+                    'name' => 'DLR SAP (TMP GENERATED) ('.$tmp = $this->generatedForecast('DLR SAP (TMP GENERATED)', $startDate, $endDate).')',
                     'data' => [$tmp],
                 ],
                 [

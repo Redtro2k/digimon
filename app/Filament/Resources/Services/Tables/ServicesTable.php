@@ -26,6 +26,7 @@ use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\ColumnGroup;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -182,6 +183,7 @@ class ServicesTable
             ])
             ->filters([
                 //
+
             ])
             ->recordActions([
                 ActionGroup::make([
